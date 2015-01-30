@@ -19,7 +19,7 @@
 #endif
 
 #define UART_BAUD 9600
-#define UART_TXBUFFERSIZE 500
+#define UART_TXBUFFERSIZE 100
 #define UART_RXBUFFERSIZE 500
 
 #define UART_BRCOUNT      5
