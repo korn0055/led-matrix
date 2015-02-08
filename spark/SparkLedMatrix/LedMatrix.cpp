@@ -2,6 +2,13 @@
 
 namespace lmx
 {
+    CLedMatrix::CLedMatrix() :
+        m_PixelBuffer(PIXEL_BUFFER_SIZE),
+        m_TextBuffer(TEXT_BUFFER_SIZE)
+    {
+
+    }
+
     bool CLedMatrix::Initialize()
     {
         m_ActiveColIndex = NUMBER_OF_BOARDS;
@@ -17,6 +24,10 @@ namespace lmx
         SPI.setClockDivider(SPI_CLOCK_DIV16);
         SPI.setDataMode(SPI_MODE0);
 
+        m_PixelBuffer.Initialize();
+        m_TextBuffer.Initialize();
+
+        return true;
     }
 
     void CLedMatrix::Refresh()
