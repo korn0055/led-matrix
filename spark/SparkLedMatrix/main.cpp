@@ -9,63 +9,21 @@
 
 
 #include "SparkIntervalTimer.h"
+#include "LedMatrix.h"
 
-#define NUMBER_OF_BOARDS 4
-#define COLUMNS_PER_BOARD 15
+using namespace lmx;
 
 // Create 3 IntervalTimer objects
 IntervalTimer myTimer;
+CLedMatrix g_Display;
+
 
 // Pre-define ISR callback functions
-void refreshDisplay(void);
-
-const uint8_t ledPin = D7;		// LED for first Interval Timer
-const uint8_t rclkPin = D2;
+void RefreshDisplayTimerCallback(void);
 
 void setup(void) {
-  pinMode(ledPin, OUTPUT);
-
-  digitalWrite(rclkPin, LOW);
-  pinMode(rclkPin, OUTPUT);
-
-  SPI.begin();
-  SPI.setBitOrder(MSBFIRST);
-  SPI.setClockDivider(SPI_CLOCK_DIV16);
-  SPI.setDataMode(SPI_MODE0);
-
-  myTimer.begin(refreshDisplay, 1000, uSec);
-}
-
-int ledState = LOW;
-
-// Callback for Timer 1
-void refreshDisplay(void) {
-  static uint16_t activeColIndex = NUMBER_OF_BOARDS;
-
-  if (ledState == LOW) {
-    ledState = HIGH;
-	PIN_MAP[ledPin].gpio_peripheral->BSRR = PIN_MAP[ledPin].gpio_pin; // LED High
-  }
-  else {
-    ledState = LOW;
-    PIN_MAP[ledPin].gpio_peripheral->BRR = PIN_MAP[ledPin].gpio_pin; // LED low
-  }
-
-  for(int8_t i = (NUMBER_OF_BOARDS - 1); i >= 0; i--)
-  {
-    SPI.transfer((1 << activeColIndex) >> 8);
-    SPI.transfer((1 << activeColIndex) & 0xFF);
-    SPI.transfer((activeColIndex << 1) & 0xFF);
-  }
-
-  digitalWrite(rclkPin, HIGH);
-  //delayMicroseconds(1);
-  digitalWrite(rclkPin, LOW);
-
-  if(activeColIndex == 0)
-    activeColIndex = COLUMNS_PER_BOARD - 1;
-  else
-    activeColIndex--;
+    g_Display.Initialize();
+    myTimer.begin(RefreshDisplayTimerCallback, RefreshPeriodUs - 1, uSec);
 }
 
 // The main program will print the blink count
@@ -93,5 +51,9 @@ void loop(void) {
 	}
   */
 
+}
 
+void RefreshDisplayTimerCallback()
+{
+    g_Display.Refresh();
 }
