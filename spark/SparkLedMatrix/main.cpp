@@ -10,56 +10,40 @@
 
 #include "SparkIntervalTimer.h"
 
+#define NUMBER_OF_BOARDS 4
+#define COLUMNS_PER_BOARD 15
+
 // Create 3 IntervalTimer objects
 IntervalTimer myTimer;
-IntervalTimer myTimer2;
-IntervalTimer myTimer3;
 
 // Pre-define ISR callback functions
-void blinkLED(void);
-void blinkLED2(void);
-void blinkLED3(void);
-
+void refreshDisplay(void);
 
 const uint8_t ledPin = D7;		// LED for first Interval Timer
-const uint8_t ledPin2 = D3;		// LED for second Interval Timer
-const uint8_t ledPin3 = D4;		// LED for third Interval Timer
+const uint8_t rclkPin = D2;
 
 void setup(void) {
   pinMode(ledPin, OUTPUT);
+
+  digitalWrite(rclkPin, LOW);
+  pinMode(rclkPin, OUTPUT);
 
   SPI.begin();
   SPI.setBitOrder(MSBFIRST);
   SPI.setClockDivider(SPI_CLOCK_DIV16);
   SPI.setDataMode(SPI_MODE0);
 
-  // AUTO allocate blinkLED to run every 500ms (1000 * .5ms period)
-  myTimer.begin(blinkLED, 1000, uSec);
-
-  // Manually allocate blinkLED2 to hardware timer TIM4 to run every 250ms (500 * .5ms period)
-  myTimer2.begin(blinkLED2, 500, hmSec, TIMER4);
-
-  // Manually allocate blinkLED3 to hardware timer TIM3 blinkLED to run every 1000ms (2000 * .5ms period)
-  myTimer3.begin(blinkLED3, 2000, hmSec, TIMER3);
-
+  myTimer.begin(refreshDisplay, 1000, uSec);
 }
 
-// The first TIMER interrupt will blink the LED, and keep
-// track of how many times it has blinked.  The other
-// two timers only blink their LEDs
 int ledState = LOW;
-int ledState2 = LOW;
-int ledState3 = LOW;
-volatile unsigned long blinkCount = 0; // use volatile for shared variables
-
-// functions called by IntervalTimer should be short, run as quickly as
-// possible, and should avoid calling other functions if possible.
 
 // Callback for Timer 1
-void blinkLED(void) {
+void refreshDisplay(void) {
+  static uint16_t activeColIndex = NUMBER_OF_BOARDS;
+
   if (ledState == LOW) {
     ledState = HIGH;
-    blinkCount++;		// increase when LED turns on
 	PIN_MAP[ledPin].gpio_peripheral->BSRR = PIN_MAP[ledPin].gpio_pin; // LED High
   }
   else {
@@ -67,31 +51,21 @@ void blinkLED(void) {
     PIN_MAP[ledPin].gpio_peripheral->BRR = PIN_MAP[ledPin].gpio_pin; // LED low
   }
 
-  SPI.transfer(0xd3);
-}
+  for(int8_t i = (NUMBER_OF_BOARDS - 1); i >= 0; i--)
+  {
+    SPI.transfer((1 << activeColIndex) >> 8);
+    SPI.transfer((1 << activeColIndex) & 0xFF);
+    SPI.transfer((activeColIndex << 1) & 0xFF);
+  }
 
-// Callback for Timer 2
-void blinkLED2(void) {
-  if (ledState2 == LOW) {
-    ledState2 = HIGH;
-	PIN_MAP[ledPin2].gpio_peripheral->BSRR = PIN_MAP[ledPin2].gpio_pin; // LED High
-  }
-  else {
-    ledState2 = LOW;
-    PIN_MAP[ledPin2].gpio_peripheral->BRR = PIN_MAP[ledPin2].gpio_pin; // LED low
-  }
-}
+  digitalWrite(rclkPin, HIGH);
+  //delayMicroseconds(1);
+  digitalWrite(rclkPin, LOW);
 
-// Callback for Timer 3
-void blinkLED3(void) {
-  if (ledState3 == LOW) {
-    ledState3 = HIGH;
-	PIN_MAP[ledPin3].gpio_peripheral->BSRR = PIN_MAP[ledPin3].gpio_pin; // LED High
-  }
-  else {
-    ledState3 = LOW;
-    PIN_MAP[ledPin3].gpio_peripheral->BRR = PIN_MAP[ledPin3].gpio_pin; // LED low
-  }
+  if(activeColIndex == 0)
+    activeColIndex = COLUMNS_PER_BOARD - 1;
+  else
+    activeColIndex--;
 }
 
 // The main program will print the blink count
@@ -118,4 +92,6 @@ void loop(void) {
 
 	}
   */
+
+
 }
