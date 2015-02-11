@@ -1,4 +1,5 @@
 #include "LedMatrix.h"
+#include "Font.h"
 
 namespace lmx
 {
@@ -12,6 +13,8 @@ namespace lmx
     bool CLedMatrix::Initialize()
     {
         m_ActiveColIndex = NUMBER_OF_BOARDS;
+        m_TrailingBlanks = NUMBER_OF_COLUMNS;
+        m_SubCharIndex = 0;
 
         //configure outputs
         pinMode(RefreshTestPointPin, OUTPUT);
@@ -30,9 +33,17 @@ namespace lmx
         return true;
     }
 
+    uint16_t CLedMatrix::PutText(char Text[], uint16_t MaxChars = 0xffff)
+    {
+        uint16_t PushCount = 0;
+        while (PushCount < MaxChars && Text[PushCount] != '\0' && !m_TextBuffer.IsFull())
+            m_TextBuffer.Put(Text[PushCount++]);
+        Render();
+        return PushCount;
+    }
+
     void CLedMatrix::Refresh()
     {
-        //static uint16_t ActiveColIndex = NUMBER_OF_BOARDS;
         static int ledState = LOW;
 
         if (ledState == LOW) {
@@ -46,9 +57,9 @@ namespace lmx
 
         for(int8_t i = (NUMBER_OF_BOARDS - 1); i >= 0; i--)
         {
-          SPI.transfer((1 << m_ActiveColIndex) >> 8);
-          SPI.transfer((1 << m_ActiveColIndex) & 0xFF);
-          SPI.transfer((m_ActiveColIndex << 1) & 0xFF);
+            SPI.transfer((1 << m_ActiveColIndex) >> 8);
+            SPI.transfer((1 << m_ActiveColIndex) & 0xFF);
+            SPI.transfer(m_PixelBuffer[m_ActiveColIndex + COLUMNS_PER_BOARD * i]);
         }
 
         LatchShiftRegs();
@@ -74,6 +85,49 @@ namespace lmx
     {
         digitalWrite(RclkPin, HIGH);
         digitalWrite(RclkPin, LOW);
+    }
+
+    void CLedMatrix::Render()
+    {
+        uint8_t TargetChar;
+        uint8_t RenderedColumn = 0;
+
+        while(!m_PixelBuffer.IsFull())
+        {
+            if(m_TextBuffer.IsEmpty())
+                TargetChar = '\0';
+            else
+                TargetChar = m_TextBuffer.Peek();
+
+            if(TargetChar == '\0')
+            {
+                if(m_TrailingBlanks > 0)
+                    m_TrailingBlanks--; //add blank column
+                else if(!m_TextBuffer.IsEmpty())
+                    m_TextBuffer.Get(); //advance
+            }
+            else if(TargetChar >= ASCII_START && TargetChar <= ASCII_END)
+            {
+                RenderedColumn = FontArray[TargetChar - ASCII_OFFSET][m_SubCharIndex];
+                if(RenderedColumn == FONT_COL_STOP_CHAR || m_SubCharIndex >= FONT_CHAR_MAX_WIDTH)
+                {
+                    RenderedColumn = 0; //end of char, add blank column for spacing, make this configurable later?
+                    m_SubCharIndex = 0; //advance to next char
+                    if(!m_TextBuffer.IsEmpty())
+                        m_TextBuffer.Get(); //advance to next char
+                }
+                else
+                    m_SubCharIndex++;
+            }
+            else //the character isn't defined by the font
+            {
+                RenderedColumn = 0xaa;  //show some invalid column
+                m_SubCharIndex = 0;     //advance to next char
+            }
+
+            m_PixelBuffer.Put(RenderedColumn);
+
+        }
 
     }
 }   //end namespace lmx

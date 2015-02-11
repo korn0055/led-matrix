@@ -22,8 +22,10 @@ CLedMatrix g_Display;
 void RefreshDisplayTimerCallback(void);
 
 void setup(void) {
+    g_Display.PutText("Testing 1, 2, 3...65468468", 25);
     g_Display.Initialize();
     myTimer.begin(RefreshDisplayTimerCallback, RefreshPeriodUs - 1, uSec);
+
 }
 
 // The main program will print the blink count

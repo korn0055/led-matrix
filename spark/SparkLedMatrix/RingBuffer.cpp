@@ -5,7 +5,14 @@ template<class t_element_type>
 CRingBuffer<t_element_type>::CRingBuffer(IndexType Capacity)
 {
     m_Capacity = Capacity;
+    m_Buffer = new t_element_type[m_Capacity];
     Initialize();
+}
+
+template<class t_element_type>
+CRingBuffer<t_element_type>::~CRingBuffer()
+{
+    delete[] m_Buffer;
 }
 
 template<class t_element_type>
@@ -22,6 +29,12 @@ t_element_type CRingBuffer<t_element_type>::Get()
     Element = m_Buffer[m_ReadOffset];
     m_ReadOffset = NextForwardOffset(m_ReadOffset);
     return Element;
+}
+
+template<class t_element_type>
+t_element_type CRingBuffer<t_element_type>::Peek()
+{
+    return m_Buffer[m_ReadOffset];
 }
 
 template<class t_element_type>
