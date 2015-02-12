@@ -33,12 +33,17 @@ namespace lmx
         return true;
     }
 
-    uint16_t CLedMatrix::PutText(char Text[], uint16_t MaxChars = 0xffff)
+    //uint16_t CLedMatrix::PutText(char Text[], uint16_t MaxChars = 0xffff)
+    uint16_t CLedMatrix::PutText(String Text)
     {
         uint16_t PushCount = 0;
+        /*
         while (PushCount < MaxChars && Text[PushCount] != '\0' && !m_TextBuffer.IsFull())
             m_TextBuffer.Put(Text[PushCount++]);
-        Render();
+        */
+        for(; PushCount <= Text.length() && !m_TextBuffer.IsFull(); PushCount++)
+            m_TextBuffer.Put(Text.charAt(PushCount));
+        //Render();
         return PushCount;
     }
 
@@ -71,7 +76,29 @@ namespace lmx
     }
 
     //Public Methods
-    void CLedMatrix::Clear()
+    void CLedMatrix::BackgroundProc()
+    {
+        Render();
+    }
+
+    void CLedMatrix::Scroll(int16_t Columns)
+    {
+        m_PixelBuffer.Flush(Columns);
+    }
+
+    void CLedMatrix::FlushBuffers()
+    {
+        noInterrupts();
+        m_TextBuffer.Flush();
+        m_PixelBuffer.Flush();
+        m_ActiveColIndex = NUMBER_OF_BOARDS;
+        m_TrailingBlanks = NUMBER_OF_COLUMNS;
+        m_SubCharIndex = 0;
+        interrupts();
+    }
+
+    //Private Methods
+    void CLedMatrix::ClearShiftRegs()
     {
         for(int8_t i = 0; i <  (NUMBER_OF_BOARDS - 1); i++)
         {
@@ -80,7 +107,6 @@ namespace lmx
         LatchShiftRegs();
     }
 
-    //Private Methods
     void CLedMatrix::LatchShiftRegs()
     {
         digitalWrite(RclkPin, HIGH);

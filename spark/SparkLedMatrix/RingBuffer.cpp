@@ -51,6 +51,18 @@ void CRingBuffer<t_element_type>::Put(t_element_type * pElements, CRingBuffer<t_
         Put(pElements[i]);
 }
 
+template<class t_element_type>
+void CRingBuffer<t_element_type>::Flush(CRingBuffer<t_element_type>::IndexType Count)
+{
+    m_ReadOffset = NextForwardOffset(m_ReadOffset, Count);
+}
+
+template<class t_element_type>
+void CRingBuffer<t_element_type>::Flush()
+{
+    m_ReadOffset = m_WriteOffset;
+}
+
 //Accessor methods
 template<class t_element_type>
 t_element_type& CRingBuffer<t_element_type>::operator[](const typename CRingBuffer<t_element_type>::IndexType Index)
@@ -71,6 +83,11 @@ bool CRingBuffer<t_element_type>::IsFull() const
     return (m_ReadOffset == NextForwardOffset(m_WriteOffset));
 }
 
+template<class t_element_type>
+typename CRingBuffer<t_element_type>::IndexType CRingBuffer<t_element_type>::Count() const
+{
+    return (m_ReadOffset > m_WriteOffset) ? (m_WriteOffset + (m_Capacity - m_ReadOffset)) : (m_WriteOffset - m_ReadOffset);
+}
 
 //private methods
 template<class t_element_type>

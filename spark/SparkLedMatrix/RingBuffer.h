@@ -17,10 +17,13 @@ public:
     t_element_type Peek();
     void Put(t_element_type);
     void Put(t_element_type*, IndexType);
+    void Flush();
+    void Flush(IndexType);
 
     /* Inquery Methods */
     bool IsEmpty() const;
     bool IsFull() const;
+    IndexType Count() const;
 
     /* operator overloading */
     t_element_type& operator[](const IndexType Index);
@@ -32,7 +35,7 @@ private:
 
     t_element_type * m_Buffer;
 
-    IndexType NextForwardOffset(IndexType) const;    
+    IndexType NextForwardOffset(IndexType) const;
     IndexType NextForwardOffset(IndexType, IndexType) const;
 
 

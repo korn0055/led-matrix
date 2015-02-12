@@ -18,10 +18,12 @@ namespace lmx
 
         CLedMatrix();
 
-        uint16_t PutText(char [], uint16_t);
+        uint16_t PutText(String);
         bool Initialize();
         void Refresh();
-        void Clear();
+        void Scroll(int16_t);
+        void BackgroundProc();
+        void FlushBuffers();
     private:
         volatile uint16_t m_ActiveColIndex;
         volatile uint16_t m_TrailingBlanks;
@@ -30,6 +32,7 @@ namespace lmx
         CRingBuffer<uint8_t> m_PixelBuffer;
         CRingBuffer<uint8_t> m_TextBuffer;
 
+        void ClearShiftRegs();
         void LatchShiftRegs();
         void Render();
     };

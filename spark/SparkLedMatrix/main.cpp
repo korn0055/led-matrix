@@ -18,14 +18,17 @@ IntervalTimer myTimer;
 CLedMatrix g_Display;
 
 
-// Pre-define ISR callback functions
 void RefreshDisplayTimerCallback(void);
+void SecTickUpate(void);
+
+int WriteText(String);
 
 void setup(void) {
-    g_Display.PutText("Testing 1, 2, 3...65468468", 25);
     g_Display.Initialize();
+    g_Display.PutText("Testing abcdefg");
     myTimer.begin(RefreshDisplayTimerCallback, RefreshPeriodUs - 1, uSec);
-
+    //myTimer.begin(SecTickUpate, 1000, hmSec);
+    Spark.function("WriteText", WriteText);
 }
 
 // The main program will print the blink count
@@ -52,8 +55,28 @@ void loop(void) {
 
 	}
   */
+  g_Display.BackgroundProc();
 
 }
+
+void SecTickUpate()
+{
+    static char ticks = 'A';
+    String test("this is a A");
+    test.setCharAt(test.length(), ticks++);
+    WriteText(test);
+}
+
+
+int WriteText(String Text)
+{
+    int32_t cols;
+    //g_Display.Scroll(g_Display.NUMBER_OF_COLUMNS);
+    g_Display.FlushBuffers();
+    cols = g_Display.PutText(Text);
+    return cols;
+}
+
 
 void RefreshDisplayTimerCallback()
 {
