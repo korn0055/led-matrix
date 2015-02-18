@@ -11,12 +11,16 @@
 #include "SparkIntervalTimer.h"
 #include "LedMatrix.h"
 
+// allow us to use itoa() in this scope
+extern char* itoa(int a, char* buffer, unsigned char radix);
+
 using namespace lmx;
 
 // Create 3 IntervalTimer objects
 IntervalTimer myTimer;
 CLedMatrix g_Display;
 
+int g_Seconds = 321;
 
 void RefreshDisplayTimerCallback(void);
 void SecTickUpate(void);
@@ -25,15 +29,27 @@ int WriteText(String);
 
 void setup(void) {
     g_Display.Initialize();
-    g_Display.PutText("Testing abcdefg");
+    //g_Display.PutText("Testing abcdefg");
+    char buf[10];
+    itoa(g_Seconds, buf, 10);
+    g_Display.PutText(buf);
     myTimer.begin(RefreshDisplayTimerCallback, RefreshPeriodUs - 1, uSec);
     //myTimer.begin(SecTickUpate, 1000, hmSec);
     Spark.function("WriteText", WriteText);
+    Spark.variable("secs", &g_Seconds, INT);
+    /*
+    httpClient = new HttpClient();
+    weather = new Weather("London,UK", httpClient,
+            "INSERT your api key here!");
+    weather->setCelsius();
+    */
 }
 
 // The main program will print the blink count
 // to the Arduino Serial Monitor
 void loop(void) {
+    static int lastVal = 0;
+    char buf[10];
 //  unsigned long blinkCopy;  // holds a copy of the blinkCount
 
   // to read a variable which the interrupt code writes, we
@@ -55,17 +71,32 @@ void loop(void) {
 
 	}
   */
-  g_Display.BackgroundProc();
+  /*
+    weather_response_t resp = weather->cachedUpdate();
+    if (resp.isSuccess)
+    {
+        WriteText
+    }*/
+    g_Seconds = millis() / 1000;
+    if(g_Seconds != lastVal)
+    {
+        itoa(g_Seconds, buf, 10);
+        WriteText(String(buf));
+        lastVal = g_Seconds;
+    }
+
+    g_Display.BackgroundProc();
 
 }
-
+/*
 void SecTickUpate()
 {
-    static char ticks = 'A';
-    String test("this is a A");
-    test.setCharAt(test.length(), ticks++);
-    WriteText(test);
+    char buf[10];
+    //itoa(g_Seconds, buf, 10);
+    WriteText(String("ticks = "));// + String(buf));
+    g_Seconds++;
 }
+*/
 
 
 int WriteText(String Text)
