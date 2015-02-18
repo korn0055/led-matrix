@@ -10,6 +10,7 @@
 
 #include "SparkIntervalTimer.h"
 #include "LedMatrix.h"
+#include "openweathermap.h"
 
 // allow us to use itoa() in this scope
 extern char* itoa(int a, char* buffer, unsigned char radix);
@@ -37,7 +38,7 @@ void setup(void) {
     //myTimer.begin(SecTickUpate, 1000, hmSec);
     Spark.function("WriteText", WriteText);
     Spark.variable("secs", &g_Seconds, INT);
-    /*
+/*
     httpClient = new HttpClient();
     weather = new Weather("London,UK", httpClient,
             "INSERT your api key here!");
@@ -71,17 +72,22 @@ void loop(void) {
 
 	}
   */
-  /*
-    weather_response_t resp = weather->cachedUpdate();
-    if (resp.isSuccess)
-    {
-        WriteText
-    }*/
+
     g_Seconds = millis() / 1000;
     if(g_Seconds != lastVal)
     {
-        itoa(g_Seconds, buf, 10);
-        WriteText(String(buf));
+        weather_response_t resp = weather->cachedUpdate();
+        if(resp.isSuccess)
+        {
+            itoa(resp.temp_low, buf, 10);
+            WriteText(String("low = ") + String(buf));
+        }
+        else
+        {
+            itoa(g_Seconds, buf, 10);
+            WriteText(String("failed = ") + String(buf));
+        }
+
         lastVal = g_Seconds;
     }
 
