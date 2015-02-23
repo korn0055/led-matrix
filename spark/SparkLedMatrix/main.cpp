@@ -22,6 +22,9 @@ IntervalTimer myTimer;
 CLedMatrix g_Display;
 
 int g_Seconds = 321;
+int g_LowTemp = 99;
+Weather* weather;
+HttpClient* httpClient;
 
 void RefreshDisplayTimerCallback(void);
 void SecTickUpate(void);
@@ -29,6 +32,8 @@ void SecTickUpate(void);
 int WriteText(String);
 
 void setup(void) {
+    Serial.begin(9600);
+    Serial.println("startup");
     g_Display.Initialize();
     //g_Display.PutText("Testing abcdefg");
     char buf[10];
@@ -38,12 +43,12 @@ void setup(void) {
     //myTimer.begin(SecTickUpate, 1000, hmSec);
     Spark.function("WriteText", WriteText);
     Spark.variable("secs", &g_Seconds, INT);
-/*
+    Spark.variable("lowTemp", &g_LowTemp, INT);
+
     httpClient = new HttpClient();
-    weather = new Weather("London,UK", httpClient,
-            "INSERT your api key here!");
-    weather->setCelsius();
-    */
+    weather = new Weather("Minneapolis,MN", httpClient, "f7aa19cc5db6ea3e9110bc31665813c5");
+    weather->setFahrenheit();
+
 }
 
 // The main program will print the blink count
@@ -51,6 +56,7 @@ void setup(void) {
 void loop(void) {
     static int lastVal = 0;
     char buf[10];
+
 //  unsigned long blinkCopy;  // holds a copy of the blinkCount
 
   // to read a variable which the interrupt code writes, we
@@ -77,17 +83,20 @@ void loop(void) {
     if(g_Seconds != lastVal)
     {
         weather_response_t resp = weather->cachedUpdate();
+
         if(resp.isSuccess)
         {
-            itoa(resp.temp_low, buf, 10);
-            WriteText(String("low = ") + String(buf));
+            g_LowTemp = resp.temp_low;
+            itoa(g_LowTemp, buf, 10);
+            WriteText(String("lowt = ") + String(buf));
         }
         else
         {
+            g_LowTemp = 750;                    
             itoa(g_Seconds, buf, 10);
             WriteText(String("failed = ") + String(buf));
         }
-
+        Serial.println(g_Seconds);
         lastVal = g_Seconds;
     }
 
