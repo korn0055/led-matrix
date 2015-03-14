@@ -84,6 +84,7 @@ void loop(void) {
         WriteText
     }*/
     g_Seconds = millis() / 1000;
+    /*
     if(g_Seconds != lastVal)
     {
         itoa(g_Seconds, buf, 10);
@@ -91,6 +92,7 @@ void loop(void) {
         WriteText(String(buf));
         lastVal = g_Seconds;
     }
+    */
 
     if(g_Seconds % 10 == 0 && !g_WeatherRequestPending)
     {
@@ -159,7 +161,9 @@ void gotWeatherData(const char *name, const char *data) {
     }
 
     if (tempStr != NULL) {
-        Serial.println("The temp is: " + tempStr + String(" *F"));
+        String TempText("Now " + tempStr + '\x7f' + 'F');
+        Serial.println(TempText);
+        WriteText(String(TempText));
     }
 
     if (windStr != NULL) {
