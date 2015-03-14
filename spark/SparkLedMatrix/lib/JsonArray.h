@@ -13,15 +13,15 @@ namespace ArduinoJson
     namespace Parser
     {
         class JsonObject;
-                
+
         // A JSON array
         class JsonArray : JsonValue
-        {          
+        {
         public:
 
             // Create an invalid array
-            JsonArray() 
-            {            
+            JsonArray()
+            {
             }
 
             // Convert a JsonValue into a JsonArray
@@ -65,7 +65,7 @@ namespace ArduinoJson
             {
                 return size();
             }
-                   
+
             // Obsolete: Use operator[] instead
             DEPRECATED JsonArray getArray(int index)
             {

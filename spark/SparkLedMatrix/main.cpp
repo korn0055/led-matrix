@@ -32,10 +32,10 @@ void SecTickUpate(void);
 int WriteText(String);
 
 void setup(void) {
-    Serial.begin(9600);
+    Serial.begin(115200);
     Serial.println("startup");
     g_Display.Initialize();
-    //g_Display.PutText("Testing abcdefg");
+    g_Display.PutText("Testing abcdefg");
     char buf[10];
     itoa(g_Seconds, buf, 10);
     g_Display.PutText(buf);
@@ -88,13 +88,13 @@ void loop(void) {
         {
             g_LowTemp = resp.temp_low;
             itoa(g_LowTemp, buf, 10);
-            WriteText(String("lowt = ") + String(buf));
+            WriteText(String("t = ") + String(buf));
         }
         else
         {
-            g_LowTemp = 750;                    
+            g_LowTemp = 750;
             itoa(g_Seconds, buf, 10);
-            WriteText(String("failed = ") + String(buf));
+            WriteText(String("fail6 = ") + String(buf));
         }
         Serial.println(g_Seconds);
         lastVal = g_Seconds;

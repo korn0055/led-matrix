@@ -45,10 +45,13 @@ weather_response_t Weather::cachedUpdate() {
 
 
 bool Weather::update(weather_response_t& response) {
-	request.forceIp = true;
+	request.forceIp = false;
 	request.ip = IPAddress(188, 226, 224, 148);
+	//request.ip = IPAddress(23, 203, 214, 89);
 	request.hostname = "api.openweathermap.org";
+	//request.hostname = "api.wunderground.com";
 	request.port = 80;
+
 	request.path = "/data/2.5/forecast/daily?q=" //
 	+ location // e.g. "Berlin,de"
 			+ "&units=" + unitsForTemperature // metric or imperial
@@ -56,6 +59,8 @@ bool Weather::update(weather_response_t& response) {
 			+ "&mode=json" // xml or json
 			+ "&APPID=" + apiKey; // see http://openweathermap.org/appid
 	request.body = "";
+
+	//request.path = "/api/48add6f6d3b3b575/conditions/q/CA/San_Francisco.json";
 
 	http_response_t http_response;
 	this->client->get(request, http_response);
@@ -107,6 +112,8 @@ bool Weather::parse(String& data, weather_response_t& response) {
 	JsonValue weather = today["weather"][0];
 	response.descr = weather["description"];
 	response.conditionCode = weather["id"];
+
+	//response.temp_low = root["current_observation"]["temp_f"];
 
 	response.isSuccess = true;
 	return true;

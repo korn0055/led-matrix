@@ -191,7 +191,7 @@ void HttpClient::request(http_request_t &aRequest, http_response_t &aResponse, h
         while (client.available()) {
             char c = client.read();
             #ifdef LOGGING
-            Serial.print(c);
+            //Serial.print(c);
             #endif
             lastRead = millis();
 
